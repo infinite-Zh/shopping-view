@@ -1,21 +1,15 @@
 package com.infinite.shoppingview
 
-import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.TypeEvaluator
-import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
-import android.view.MotionEvent
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.scale
-import kotlinx.android.synthetic.main.activity_main.view.*
-import kotlin.math.nextDown
 import kotlin.math.pow
 
 /**
