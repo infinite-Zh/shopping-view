@@ -1,5 +1,6 @@
 package com.infinite.shoppingview
 
+import android.animation.TypeEvaluator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
@@ -10,6 +11,8 @@ import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.view.*
+import kotlin.math.nextDown
+import kotlin.math.pow
 
 /**
  * @author bug小能手
@@ -86,7 +89,7 @@ class ShoppingView : View {
         mControlPoints.add(PointF(targetView.getCenterX(),targetView.getCenterY()))
         mControlPoints.add(PointF(targetView.right.toFloat(),targetView.getCenterY()))
         mControlPoints.add(PointF(targetView.target.right.toFloat(),targetView.top.toFloat()))
-//        firstStep(mControlPoints)
+        firstStep(mControlPoints)
     }
 
     private fun View.getCenterX():Float{
@@ -106,26 +109,37 @@ class ShoppingView : View {
 
         drawPath = true
 
-        val valAnim = ValueAnimator.ofFloat(0.001f, 1f)
+        val valAnim = ValueAnimator.ofObject(BezierEvaluator(points[1]),points[0],points[2])
         valAnim.duration = 500
         valAnim.addUpdateListener {
-            val i = it.animatedValue as Float
-            val p = PointF(
-                calculateBezier(points.size - 1, 0, i, true),
-                calculateBezier(points.size - 1, 0, i, false)
-            )
-            if (i == 1 / 1000f) {
-                mBezierPath.moveTo(p.x, p.y)
-            } else {
-                mBezierPath.lineTo(p.x, p.y)
-            }
+            val p = it.animatedValue as PointF
+//            if (i == 1 / 1000f) {
+//                mBezierPath.moveTo(p.x, p.y)
+//            } else {
+//                mBezierPath.lineTo(p.x, p.y)
+//            }
 
             mBitmapRect.left=p.x.toInt()-mBitmap.width/2
-            mBitmapRect.top=p.y.toInt()+mBitmap.height/2
+            mBitmapRect.top=p.y.toInt()-mBitmap.height/2
 
             invalidate()
         }
         valAnim.start()
+    }
+
+    class BezierEvaluator constructor(controlPointF: PointF) :TypeEvaluator<PointF>{
+
+        val control=controlPointF
+        override fun evaluate(time: Float, start: PointF, end: PointF): PointF {
+            val result=PointF()
+            val timeLeft=1-time
+//            result.x=(1 - fraction).times(start.x) + fraction.times(end.x)
+//            result.y=(1 - fraction).times(start.y) + fraction.times(end.y)
+            result.x = timeLeft.pow(2).times(start.x)+timeLeft.times(control.x).times(2).times(time)+time.pow(2).times(end.x)
+            result.y = timeLeft.pow(2).times(start.y)+timeLeft.times(control.y).times(2).times(time)+time.pow(2).times(end.y)
+
+            return result
+        }
     }
 
     fun secongStep(points:MutableList<PointF>){
