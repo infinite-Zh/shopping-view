@@ -50,22 +50,33 @@ class ShoppingView : View {
             FrameLayout.LayoutParams.MATCH_PARENT
         )
 
-        (context as AppCompatActivity).window.addContentView(this,lp)
+        (context as AppCompatActivity).window.addContentView(this, lp)
 
-        val rootView=(context as AppCompatActivity).window.findViewById<FrameLayout>(android.R.id.content)
-
-        val contentLocation= intArrayOf(0,0)
+        // 获取content的坐标
+        val rootView =
+            (context as AppCompatActivity).window.findViewById<FrameLayout>(android.R.id.content)
+        val contentLocation = intArrayOf(0, 0)
         rootView.getLocationInWindow(contentLocation)
 
-        val location= intArrayOf(0,0)
-        sourceView.getLocationInWindow(location)
+        //获取要移动的view的左边
+        val sourceLocation = intArrayOf(0, 0)
+        sourceView.getLocationInWindow(sourceLocation)
+
+        //获取目标view的坐标
+        val locationCar = intArrayOf(0, 0)
+        targetView.getLocationInWindow(locationCar)
+
 
         mBitmap = Bitmap.createBitmap(sourceView.width, sourceView.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(mBitmap)
         sourceView.draw(canvas)
-//        mBitmapRect = Rect(sourceView.left, sourceView.top, sourceView.right, sourceView.bottom)
-        mBitmapRect = Rect(location[0], location[1], location[0]+sourceView.width, location[1]+sourceView.height)
-        Log.e("origin Location","${location[1]}")
+        mBitmapRect = Rect(
+            sourceLocation[0],
+            sourceLocation[1],
+            sourceLocation[0] + sourceView.width,
+            sourceLocation[1] + sourceView.height
+        )
+        Log.e("origin Location", "${sourceLocation[1]}")
         mStatus = STATUS_INIT
         invalidate()
 
@@ -73,32 +84,20 @@ class ShoppingView : View {
 
         drawPath = true
 
-        val locationCar= intArrayOf(0,0)
-        targetView.getLocationInWindow(locationCar)
 
-        val screenLocation= intArrayOf(0,0)
-        targetView.getLocationOnScreen(screenLocation)
+        val dataPointAx = sourceLocation[0]
+        // 减去content的y坐标值，获取到相对于content的y坐标
+        val dataPointAy = sourceLocation[1] - contentLocation[1]
 
-        val dataPointAx=location[0]
-        val dataPointAy=location[1]-contentLocation[1]
+        val dataPointBx = locationCar[0]
+        val dataPointBy = locationCar[1] - contentLocation[1]
 
-        val dataPointBx=locationCar[0]
-        val dataPointBy=locationCar[1]-contentLocation[1]
+        mControlPoints.add(PointF(dataPointAx.toFloat(), dataPointAy.toFloat()))
+        mControlPoints.add(PointF(dataPointBx.toFloat(), dataPointAy.toFloat()))
+        mControlPoints.add(PointF(dataPointBx.toFloat(), dataPointBy.toFloat()))
 
-        val controlPointX=dataPointBx
-        val controlPointY=dataPointAy-contentLocation[1]
-
-        mControlPoints.add(PointF(dataPointAx.toFloat(),dataPointAy.toFloat()))
-        mControlPoints.add(PointF(dataPointBx.toFloat(),dataPointAy.toFloat()))
-        mControlPoints.add(PointF(dataPointBx.toFloat(),dataPointBy.toFloat()))
-
-
-//        mControlPoints.add(PointF(sourceView.getCenterX(), sourceView.getCenterY()))
-//        mControlPoints.add(PointF(targetView.getCenterX(), sourceView.getCenterY()))
-//        mControlPoints.add(PointF(targetView.getCenterX(), targetView.getCenterY()))
         firstStep(mControlPoints)
     }
-
 
 
     private fun View.getCenterX(): Float {
@@ -122,7 +121,7 @@ class ShoppingView : View {
 
             mBitmapRect.left = p.x.toInt()
             mBitmapRect.top = p.y.toInt()
-            Log.e("anim Location","${mBitmapRect.top}")
+            Log.e("anim Location", "${mBitmapRect.top}")
             invalidate()
         }
         val scaleAnim = ObjectAnimator.ofFloat(1f, 0.5f)
@@ -152,7 +151,6 @@ class ShoppingView : View {
             return result
         }
     }
-
 
 
     private var drawPath = false
