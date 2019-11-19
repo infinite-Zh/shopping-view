@@ -5,6 +5,7 @@ import android.animation.TypeEvaluator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.widget.FrameLayout
@@ -43,18 +44,28 @@ class ShoppingView : View {
     private var mStatus = STATUS_INIT
 
 
-    fun addToShoppingCar(targetView: ImageView, car: View) {
+    fun addToShoppingCar(sourceView: ImageView, targetView: View) {
         val lp = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT
         )
-        (context as AppCompatActivity).findViewById<FrameLayout>(android.R.id.content)
-            .addView(this, lp)
 
-        mBitmap = Bitmap.createBitmap(targetView.width, targetView.height, Bitmap.Config.ARGB_8888)
+        (context as AppCompatActivity).window.addContentView(this,lp)
+
+        val rootView=(context as AppCompatActivity).window.findViewById<FrameLayout>(android.R.id.content)
+
+        val contentLocation= intArrayOf(0,0)
+        rootView.getLocationInWindow(contentLocation)
+
+        val location= intArrayOf(0,0)
+        sourceView.getLocationInWindow(location)
+
+        mBitmap = Bitmap.createBitmap(sourceView.width, sourceView.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(mBitmap)
-        targetView.draw(canvas)
-        mBitmapRect = Rect(targetView.left, targetView.top, targetView.right, targetView.bottom)
+        sourceView.draw(canvas)
+//        mBitmapRect = Rect(sourceView.left, sourceView.top, sourceView.right, sourceView.bottom)
+        mBitmapRect = Rect(location[0], location[1], location[0]+sourceView.width, location[1]+sourceView.height)
+        Log.e("origin Location","${location[1]}")
         mStatus = STATUS_INIT
         invalidate()
 
@@ -62,11 +73,33 @@ class ShoppingView : View {
 
         drawPath = true
 
-        mControlPoints.add(PointF(targetView.getCenterX(), targetView.getCenterY()))
-        mControlPoints.add(PointF(car.getCenterX(), targetView.getCenterY()))
-        mControlPoints.add(PointF(car.getCenterX(), car.getCenterY()))
+        val locationCar= intArrayOf(0,0)
+        targetView.getLocationInWindow(locationCar)
+
+        val screenLocation= intArrayOf(0,0)
+        targetView.getLocationOnScreen(screenLocation)
+
+        val dataPointAx=location[0]
+        val dataPointAy=location[1]-contentLocation[1]
+
+        val dataPointBx=locationCar[0]
+        val dataPointBy=locationCar[1]-contentLocation[1]
+
+        val controlPointX=dataPointBx
+        val controlPointY=dataPointAy-contentLocation[1]
+
+        mControlPoints.add(PointF(dataPointAx.toFloat(),dataPointAy.toFloat()))
+        mControlPoints.add(PointF(dataPointBx.toFloat(),dataPointAy.toFloat()))
+        mControlPoints.add(PointF(dataPointBx.toFloat(),dataPointBy.toFloat()))
+
+
+//        mControlPoints.add(PointF(sourceView.getCenterX(), sourceView.getCenterY()))
+//        mControlPoints.add(PointF(targetView.getCenterX(), sourceView.getCenterY()))
+//        mControlPoints.add(PointF(targetView.getCenterX(), targetView.getCenterY()))
         firstStep(mControlPoints)
     }
+
+
 
     private fun View.getCenterX(): Float {
         return (this.left + this.right) / 2.toFloat()
@@ -87,9 +120,9 @@ class ShoppingView : View {
         pathAnim.addUpdateListener {
             val p = it.animatedValue as PointF
 
-            mBitmapRect.left = p.x.toInt() - mBitmap.width / 2
-            mBitmapRect.top = p.y.toInt() - mBitmap.height / 2
-
+            mBitmapRect.left = p.x.toInt()
+            mBitmapRect.top = p.y.toInt()
+            Log.e("anim Location","${mBitmapRect.top}")
             invalidate()
         }
         val scaleAnim = ObjectAnimator.ofFloat(1f, 0.5f)
@@ -125,6 +158,7 @@ class ShoppingView : View {
     private var drawPath = false
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
+//        canvas?.drawColor(Color.LTGRAY)
         when (mStatus) {
             STATUS_INIT -> {
                 canvas?.drawBitmap(
