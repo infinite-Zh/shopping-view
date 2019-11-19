@@ -7,9 +7,11 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
+import android.view.animation.AccelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.scale
 import kotlin.math.pow
 
 /**
@@ -96,12 +98,6 @@ class ShoppingView : View {
     private fun View.getCenterY():Float{
         return (this.top+this.bottom)/2.toFloat()
     }
-    fun reset() {
-        mBezierPath.reset()
-        mControlPoints.clear()
-        drawPath = false
-        invalidate()
-    }
 
     private var mScale=1f
     fun firstStep(points:MutableList<PointF>) {
@@ -110,6 +106,7 @@ class ShoppingView : View {
 
         val pathAnim = ObjectAnimator.ofObject(BezierEvaluator(points[1]),points[0],points[2])
         pathAnim.duration = 500
+        pathAnim.interpolator=AccelerateInterpolator()
         pathAnim.addUpdateListener {
             val p = it.animatedValue as PointF
 
@@ -159,8 +156,9 @@ class ShoppingView : View {
             canvas?.drawBitmap(mBitmap,mBitmapRect.left.toFloat(),mBitmapRect.top.toFloat(),mLinePaint)
         }
             STATUS_ANIMATION->{
-
-                canvas?.drawBitmap(mBitmap,mBitmapRect.left.toFloat(),mBitmapRect.top.toFloat(),mLinePaint)
+                val b=mBitmap.scale((mBitmap.width*mScale).toInt(),(mBitmap.height*mScale).toInt())
+//                canvas?.drawBitmap(b,mBitmapRect.left+b.width/2.toFloat(),mBitmapRect.top+b.height/2.toFloat(),mLinePaint)
+                canvas?.drawBitmap(b,mBitmapRect.left.toFloat(),mBitmapRect.top.toFloat(),mLinePaint)
 
             }
         }
