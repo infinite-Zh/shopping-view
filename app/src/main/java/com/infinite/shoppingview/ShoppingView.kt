@@ -82,7 +82,6 @@ class ShoppingView : View {
 
         mStatus = STATUS_ANIMATION
 
-        drawPath = true
 
 
         val dataPointAx = sourceLocation[0]
@@ -102,8 +101,6 @@ class ShoppingView : View {
 
     private var mScale = 1f
     private fun firstStep(points: MutableList<PointF>) {
-
-        drawPath = true
 
         val pathAnim = ObjectAnimator.ofObject(BezierEvaluator(points[1]), points[0], points[2])
         pathAnim.duration = 500
@@ -149,7 +146,6 @@ class ShoppingView : View {
     }
 
 
-    private var drawPath = false
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         when (mStatus) {
