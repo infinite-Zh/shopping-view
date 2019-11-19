@@ -36,12 +36,12 @@ class ListActivity : AppCompatActivity() {
             add(Pair(R.mipmap.ic_good, "title"))
             add(Pair(R.mipmap.ic_good, "title"))
         }
-    private var mCount=0
+    private var mCount = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_list)
-        recyclerView.layoutManager=LinearLayoutManager(this)
+        recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = ListAdapter()
     }
 
@@ -59,6 +59,30 @@ class ListActivity : AppCompatActivity() {
             val pair = items[position]
             holder.img.setImageResource(pair.first)
             holder.title.text = pair.second
+            holder.itemView.setOnClickListener {
+                if (position % 2 == 0) {
+
+                    val view = ShoppingView(this@ListActivity)
+
+                    view.addToShoppingCar(holder.img, shoppingCar)
+                    view.setOnEndListener(object : ShoppingView.OnEnd {
+                        override fun end() {
+                            mCount++
+                            num.text = mCount.toString()
+                        }
+                    })
+                } else {
+                    val view = JDLikeShoppingView(this@ListActivity)
+                    view.addToShoppingCar(holder.img, shoppingCar)
+                    view.setOnEndListener(object : JDLikeShoppingView.OnEnd {
+                        override fun end() {
+                            mCount++
+                            num.text = mCount.toString()
+                        }
+
+                    })
+                }
+            }
         }
 
 
@@ -67,18 +91,7 @@ class ListActivity : AppCompatActivity() {
             val title = itemView.findViewById<TextView>(R.id.title)
 
             init {
-                itemView.setOnClickListener {
-                   val view= ShoppingView(this@ListActivity)
 
-                    view.addToShoppingCar(img, shoppingCar)
-                    view.setOnEndListener(object :ShoppingView.OnEnd{
-                        override fun end() {
-                            mCount++
-                            num.text=mCount.toString()
-                        }
-
-                    })
-                }
             }
         }
     }
