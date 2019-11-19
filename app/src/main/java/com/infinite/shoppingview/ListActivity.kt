@@ -9,7 +9,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.android.synthetic.main.activity_list.*
-import kotlinx.android.synthetic.main.activity_main.*
 
 /**
  * @author bug小能手
@@ -37,6 +36,7 @@ class ListActivity : AppCompatActivity() {
             add(Pair(R.mipmap.ic_good, "title"))
             add(Pair(R.mipmap.ic_good, "title"))
         }
+    private var mCount=0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,8 +68,16 @@ class ListActivity : AppCompatActivity() {
 
             init {
                 itemView.setOnClickListener {
-                    ShoppingView(this@ListActivity)
-                        .addToShoppingCar(img, shoppingCar)
+                   val view= ShoppingView(this@ListActivity)
+
+                    view.addToShoppingCar(img, shoppingCar)
+                    view.setOnEndListener(object :ShoppingView.OnEnd{
+                        override fun end() {
+                            mCount++
+                            num.text=mCount.toString()
+                        }
+
+                    })
                 }
             }
         }

@@ -5,12 +5,12 @@ import android.animation.TypeEvaluator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
-import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.animation.doOnEnd
 import androidx.core.graphics.scale
 import kotlin.math.pow
 
@@ -50,7 +50,8 @@ class ShoppingView : View {
             FrameLayout.LayoutParams.MATCH_PARENT
         )
 
-        (context as AppCompatActivity).window.addContentView(this, lp)
+//        (context as AppCompatActivity).window.addContentView(this, lp)
+        (context as AppCompatActivity).window.findViewById<FrameLayout>(android.R.id.content).addView(this,lp)
 
         // 获取content的坐标
         val rootView =
@@ -76,7 +77,6 @@ class ShoppingView : View {
             sourceLocation[0] + sourceView.width,
             sourceLocation[1] + sourceView.height
         )
-        Log.e("origin Location", "${sourceLocation[1]}")
         mStatus = STATUS_INIT
         invalidate()
 
@@ -100,14 +100,6 @@ class ShoppingView : View {
     }
 
 
-    private fun View.getCenterX(): Float {
-        return (this.left + this.right) / 2.toFloat()
-    }
-
-    private fun View.getCenterY(): Float {
-        return (this.top + this.bottom) / 2.toFloat()
-    }
-
     private var mScale = 1f
     private fun firstStep(points: MutableList<PointF>) {
 
@@ -121,13 +113,17 @@ class ShoppingView : View {
 
             mBitmapRect.left = p.x.toInt()
             mBitmapRect.top = p.y.toInt()
-            Log.e("anim Location", "${mBitmapRect.top}")
             invalidate()
         }
         val scaleAnim = ObjectAnimator.ofFloat(1f, 0.5f)
         scaleAnim.duration = 500
         scaleAnim.addUpdateListener {
             mScale = it.animatedValue as Float
+        }
+
+        pathAnim.doOnEnd {
+            mEndListener?.end()
+            (context as AppCompatActivity).window.findViewById<FrameLayout>(android.R.id.content).removeView(this)
         }
         pathAnim.start()
         scaleAnim.start()
@@ -156,7 +152,6 @@ class ShoppingView : View {
     private var drawPath = false
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-//        canvas?.drawColor(Color.LTGRAY)
         when (mStatus) {
             STATUS_INIT -> {
                 canvas?.drawBitmap(
@@ -181,5 +176,15 @@ class ShoppingView : View {
             }
         }
 
+    }
+
+    interface OnEnd {
+        fun end()
+    }
+
+    private var mEndListener: OnEnd? = null
+
+    fun setOnEndListener(l: OnEnd) {
+        mEndListener = l
     }
 }
