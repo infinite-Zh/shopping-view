@@ -7,7 +7,8 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
-import android.view.animation.*
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
@@ -32,19 +33,13 @@ class JDLikeShoppingView : View {
         }
     }
 
-    private var mPath=Path()
+    private var mPath = Path()
 
-    companion object {
-        const val STATUS_INIT = 0x01
-        const val STATUS_ANIMATION = 0x01 shl 1
-    }
 
     private lateinit var mBitmap: Bitmap
     private lateinit var mBitmapRect: Rect
 
     private val mControlPoints = mutableListOf<PointF>()
-
-    private var mStatus = STATUS_INIT
 
 
     fun addToShoppingCar(sourceView: ImageView, targetView: View) {
@@ -81,29 +76,25 @@ class JDLikeShoppingView : View {
             sourceLocation[1] + sourceView.height
         )
 
-        mStatus = STATUS_INIT
         invalidate()
 
-        mStatus = STATUS_ANIMATION
-
-
-        val dataPointAx = sourceLocation[0]+sourceView.measuredWidth/2
+        val dataPointAx = sourceLocation[0] + sourceView.measuredWidth / 2
         // 减去content的y坐标值，获取到相对于content的y坐标
-        val dataPointAy = sourceLocation[1] - contentLocation[1]+sourceView.measuredHeight/2
+        val dataPointAy = sourceLocation[1] - contentLocation[1] + sourceView.measuredHeight / 2
 
-        val dataPointBx = sourceLocation[0]+sourceView.measuredWidth
+        val dataPointBx = sourceLocation[0] + sourceView.measuredWidth
         val dataPointBy = sourceLocation[1] - contentLocation[1]
 
-        mControlPoints.add(PointF(dataPointAx.toFloat(),dataPointAy.toFloat()))
-        mControlPoints.add(PointF(dataPointBx.toFloat(),dataPointAy.toFloat()))
-        mControlPoints.add(PointF(dataPointBx.toFloat(),dataPointBy.toFloat()))
+        mControlPoints.add(PointF(dataPointAx.toFloat(), dataPointAy.toFloat()))
+        mControlPoints.add(PointF(dataPointBx.toFloat(), dataPointAy.toFloat()))
+        mControlPoints.add(PointF(dataPointBx.toFloat(), dataPointBy.toFloat()))
 
-        firstStep(mControlPoints,object :OnEnd{
+        firstStep(mControlPoints, object : OnEnd {
             override fun end() {
                 mControlPoints.clear()
-                mControlPoints.add(PointF(dataPointBx.toFloat(),dataPointBy.toFloat()))
-                mControlPoints.add(PointF(targetLocation[0].toFloat(),dataPointAy.toFloat()))
-                mControlPoints.add(PointF(targetLocation[0].toFloat(),targetLocation[1].toFloat()))
+                mControlPoints.add(PointF(dataPointBx.toFloat(), dataPointBy.toFloat()))
+                mControlPoints.add(PointF(targetLocation[0].toFloat(), dataPointAy.toFloat()))
+                mControlPoints.add(PointF(targetLocation[0].toFloat(), targetLocation[1].toFloat()))
 
                 secondStep(mControlPoints)
             }
@@ -114,7 +105,7 @@ class JDLikeShoppingView : View {
 
 
     private var mScale = 1f
-    private fun firstStep(points: MutableList<PointF>,onEnd: OnEnd) {
+    private fun firstStep(points: MutableList<PointF>, onEnd: OnEnd) {
 
         val pathAnim = ObjectAnimator.ofObject(BezierEvaluator(points[1]), points[0], points[2])
         pathAnim.duration = 500
@@ -122,10 +113,10 @@ class JDLikeShoppingView : View {
         pathAnim.addUpdateListener {
             val p = it.animatedValue as PointF
 
-            mBitmapRect.left = (p.x-mBitmap.width.times(mScale/2)).toInt()
-            mBitmapRect.top = (p.y-mBitmap.height.times(mScale/2)).toInt()
+            mBitmapRect.left = (p.x - mBitmap.width.times(mScale / 2)).toInt()
+            mBitmapRect.top = (p.y - mBitmap.height.times(mScale / 2)).toInt()
 
-            mPath.lineTo(p.x,p.y)
+            mPath.lineTo(p.x, p.y)
             invalidate()
         }
         val scaleAnim = ObjectAnimator.ofFloat(1f, 0.5f)
@@ -143,30 +134,31 @@ class JDLikeShoppingView : View {
         scaleAnim.start()
     }
 
-    private fun secondStep(points: MutableList<PointF>){
+    private fun secondStep(points: MutableList<PointF>) {
         val pathAnim = ObjectAnimator.ofObject(BezierEvaluator(points[1]), points[0], points[2])
         pathAnim.duration = 500
-        pathAnim.startDelay=200
+        pathAnim.startDelay = 200
         pathAnim.interpolator = AccelerateInterpolator()
         pathAnim.addUpdateListener {
             val p = it.animatedValue as PointF
 
-            mBitmapRect.left = (p.x-mBitmap.width.times(mScale/2)).toInt()
-            mBitmapRect.top = (p.y-mBitmap.height.times(mScale/2)).toInt()
+            mBitmapRect.left = (p.x - mBitmap.width.times(mScale / 2)).toInt()
+            mBitmapRect.top = (p.y - mBitmap.height.times(mScale / 2)).toInt()
 
-            mPath.lineTo(p.x,p.y)
+            mPath.lineTo(p.x, p.y)
             invalidate()
         }
         val scaleAnim = ObjectAnimator.ofFloat(0.5f, 0.3f)
         scaleAnim.duration = 500
-        scaleAnim.startDelay=200
+        scaleAnim.startDelay = 200
         scaleAnim.addUpdateListener {
             mScale = it.animatedValue as Float
             Log.e("scale", "$mScale")
         }
 
         pathAnim.doOnEnd {
-            (context as AppCompatActivity).window.findViewById<FrameLayout>(android.R.id.content).removeView(this)
+            (context as AppCompatActivity).window.findViewById<FrameLayout>(android.R.id.content)
+                .removeView(this)
             mEndListener?.end()
         }
         pathAnim.start()
@@ -195,31 +187,16 @@ class JDLikeShoppingView : View {
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        when (mStatus) {
-            STATUS_INIT -> {
-                canvas?.drawBitmap(
-                    mBitmap,
-                    mBitmapRect.left.toFloat(),
-                    mBitmapRect.top.toFloat(),
-                    mLinePaint
-                )
-            }
-            STATUS_ANIMATION -> {
-                val b = mBitmap.scale(
-                    (mBitmap.width * mScale).toInt(),
-                    (mBitmap.height * mScale).toInt()
-                )
-                canvas?.drawBitmap(
-                    b,
-                    mBitmapRect.left.toFloat(),
-                    mBitmapRect.top.toFloat(),
-                    mLinePaint
-                )
-
-            }
-        }
-//        canvas?.drawPath(mPath,mLinePaint)
-
+        val b = mBitmap.scale(
+            (mBitmap.width * mScale).toInt(),
+            (mBitmap.height * mScale).toInt()
+        )
+        canvas?.drawBitmap(
+            b,
+            mBitmapRect.left.toFloat(),
+            mBitmapRect.top.toFloat(),
+            mLinePaint
+        )
     }
 
     interface OnEnd {

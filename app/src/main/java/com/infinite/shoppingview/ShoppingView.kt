@@ -31,17 +31,12 @@ class ShoppingView : View {
         }
     }
 
-    companion object {
-        const val STATUS_INIT = 0x01
-        const val STATUS_ANIMATION = 0x01 shl 1
-    }
 
     private lateinit var mBitmap: Bitmap
     private lateinit var mBitmapRect: Rect
 
     private val mControlPoints = mutableListOf<PointF>()
 
-    private var mStatus = STATUS_INIT
 
 
     fun addToShoppingCar(sourceView: ImageView, targetView: View) {
@@ -77,12 +72,7 @@ class ShoppingView : View {
             sourceLocation[0] + sourceView.width,
             sourceLocation[1] + sourceView.height
         )
-        mStatus = STATUS_INIT
         invalidate()
-
-        mStatus = STATUS_ANIMATION
-
-
 
         val dataPointAx = sourceLocation[0]
         // 减去content的y坐标值，获取到相对于content的y坐标
@@ -148,29 +138,17 @@ class ShoppingView : View {
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        when (mStatus) {
-            STATUS_INIT -> {
-                canvas?.drawBitmap(
-                    mBitmap,
-                    mBitmapRect.left.toFloat(),
-                    mBitmapRect.top.toFloat(),
-                    mLinePaint
-                )
-            }
-            STATUS_ANIMATION -> {
-                val b = mBitmap.scale(
-                    (mBitmap.width * mScale).toInt(),
-                    (mBitmap.height * mScale).toInt()
-                )
-                canvas?.drawBitmap(
-                    b,
-                    mBitmapRect.left.toFloat(),
-                    mBitmapRect.top.toFloat(),
-                    mLinePaint
-                )
 
-            }
-        }
+        val b = mBitmap.scale(
+            (mBitmap.width * mScale).toInt(),
+            (mBitmap.height * mScale).toInt()
+        )
+        canvas?.drawBitmap(
+            b,
+            mBitmapRect.left.toFloat(),
+            mBitmapRect.top.toFloat(),
+            mLinePaint
+        )
 
     }
 
