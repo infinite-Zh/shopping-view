@@ -80,6 +80,7 @@ class JDLikeShoppingView : View {
             sourceLocation[0] + sourceView.width,
             sourceLocation[1] + sourceView.height
         )
+
         mStatus = STATUS_INIT
         invalidate()
 

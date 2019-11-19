@@ -38,12 +38,12 @@
 
     <TextView
         android:id="@+id/num"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:gravity="center"
+        android:background="@drawable/dra_red_dot"
         android:text=""
-        android:textColor="#ff0000"
-        android:textSize="20sp"
-        android:textStyle="bold"
+        android:textColor="#ffffff"
         app:layout_constraintCircle="@+id/shoppingCar"
         app:layout_constraintCircleAngle="45"
         app:layout_constraintCircleRadius="30dp" />
